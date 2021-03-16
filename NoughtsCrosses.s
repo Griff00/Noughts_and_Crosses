@@ -1,7 +1,9 @@
 #include <xc.inc>
 extrn	Keypad_Setup, Keypad_Read
-
+extrn	GLCD_Setup, GLCD_Draw_NC
+    
 global  NC_Run_Game
+global NC_Board_1_1, NC_Board_1_2,NC_Board_1_3,NC_Board_2_1,NC_Board_2_2,NC_Board_2_3,NC_Board_3_1,NC_Board_3_2,NC_Board_3_3
     
 psect	udata_acs   ; named variables in access ram
 NC_Game_Status: ds 1 ;status byte- last bit is 1 if game has been won
@@ -31,7 +33,8 @@ NC_Run_Game:
 	call NC_Setup_Game
     nc_game_loop:
 	call NC_Switch_Player
-	call NC_Take_Turn
+	call NC_Take_Turn	
+	call GLCD_Draw_NC ;refreshes the values on the board
 	call NC_Check_Win
 	movlw NC_Game_Status & 0x01
 	tstfsz WREG, A  ;test the last bit of the status register- if it's zero, keep playing
@@ -44,7 +47,7 @@ NC_Run_Game:
 NC_Setup_Game: 
 	call Keypad_Setup ;Set up the keypad for use	
 	call NC_Clear_Board
-	;add call to display fn
+	call GLCD_Setup ;draws empty board	
 	movlw 0x00
 	movwf NC_Game_Status, A ;new game, cannot be won yet
 	movlw 0x58
@@ -345,7 +348,7 @@ NC_Show_Winner:
 	movff NC_Current_Player, NC_Board_3_2, A
 	movff NC_Current_Player, NC_Board_3_3, A
 
-	; add call to update the board
+	call GLCD_Draw_NC
 
 	movlw 0xFA ;250 
 	call NC_delay_x1ms ;delay for 0.25s
@@ -371,7 +374,7 @@ NC_Clear_Board:
 	movwf NC_Board_3_1, A
 	movwf NC_Board_3_2, A
 	movwf NC_Board_3_3, A
-	;add call to update the board
+	call GLCD_Draw_NC ;send these values to the board
 	return 
     
     
