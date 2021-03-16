@@ -33,21 +33,22 @@ NC_Run_Game:
 	call NC_Switch_Player
 	call NC_Take_Turn
 	call NC_Check_Win
-	movlw NC_Game_Status & 00000001B
+	movlw NC_Game_Status & 0x01
 	tstfsz WREG, A  ;test the last bit of the status register- if it's zero, keep playing
-	goto nc_game_loop
-	goto nc_end_game
+	goto nc_game_loop ;game is not won- move to next turn
+	goto nc_end_game ;game is won- end round
     nc_end_game: 
 	call NC_Show_Winner
 	return 
 
 NC_Setup_Game: 
-	call Keypad_Setup ;Set up the keypad for use
-	movlw 0x00
-	movwf NC_Game_Status, A ;new game, the 'game still running?' flag should be 1
-	movlw 0x58
-	movwf NC_Current_Player, A ;move the code for X into current_turn- the first thing the game does is switch to O, so O moves first	
+	call Keypad_Setup ;Set up the keypad for use	
 	call NC_Clear_Board
+	;add call to display fn
+	movlw 0x00
+	movwf NC_Game_Status, A ;new game, cannot be won yet
+	movlw 0x58
+	movwf NC_Current_Player, A ;move the code for X into current_turn- the first thing the game does is switch to O, so O moves first
 	return 
     
 NC_Switch_Player:
@@ -165,9 +166,170 @@ NC_Take_Turn:
 
     
 NC_Check_Win: 
-    ;not written yet
-    return 
+	;check the rows
+	call NC_Check_Win_Rows
+	;check if game won yet
+	movlw NC_Game_Status | 0x01
+	cpfseq NC_Game_Status
+	call NC_Check_Win_Columns ;if not, check the columns
+	;check again if game has been won	
+	movlw NC_Game_Status | 0x01
+	cpfseq NC_Game_Status
+	call NC_Check_Win_Diagonals ;if not, check the diagonals 
+	;all checked- return
+	return 
+
+NC_Check_Win_Rows: 
+	;check if the first element in the row matches the second
+	movf NC_Board_1_1, W, A
+	cpfseq NC_Board_1_2, A
+	goto nc_check_row_2 ;if doesn't match, check the next row	
+	movlw 0x00 ;if does match, check it's not 0s
+	cpfseq NC_Board_1_1, A
+	goto nc_check_win_row_1 ;if it does match and isn't zeros, go check the third
+	;if it is zeros, go check the next row
+	
+    nc_check_row_2:
+	movf NC_Board_2_1, W, A
+	cpfseq NC_Board_2_2, A	
+	goto nc_check_row_3 ;doesn't match- next row
+	movlw 0x00 ;does match, check it's not 0s
+	cpfseq NC_Board_2_1, A 
+	goto nc_check_win_row_2 ;not zero- check third element
+	;zeros- check next row
+	
+    nc_check_row_3:
+	movf NC_Board_3_1, W, A
+	cpfseq NC_Board_3_2, A
+	return ;if it doesn't match, all rows have been checked - exit subroutine
+	movlw 0x00 ;if does match, check it's not 0s
+	cpfseq NC_Board_3_1, A
+	goto nc_check_win_row_3 ;check third element
+	return ;if zeros- exit sub
+	
+    ;checking the third elements
+    nc_check_win_row_1:	
+	movf NC_Board_1_2, W, A
+	cpfseq NC_Board_1_3, A ;check if third element in row equal to other two
+	goto nc_check_row_2 ;if not- check the next row
+	;if is equal, game has been won- set game won flag in status bit equal to 1
+	movlw NC_Game_Status | 0x01
+	movwf NC_Game_Status
+	return 
     
+    nc_check_win_row_2:	
+	movf NC_Board_2_2, W, A
+	cpfseq NC_Board_2_3, A
+	goto nc_check_row_3
+	;game has been won- set game won flag in status bit equal to 1
+	movlw NC_Game_Status | 0x01
+	movwf NC_Game_Status
+	return 
+    
+    nc_check_win_row_3:	
+	movf NC_Board_3_2, W, A
+	cpfseq NC_Board_3_3, A
+	return ;no next row to check- exit subroutine
+	;game has been won- set game won flag in status bit equal to 1
+	movlw NC_Game_Status | 0x01
+	movwf NC_Game_Status
+	return 
+
+NC_Check_Win_Columns: 
+	;check if the first element in the column matches the second
+	movf NC_Board_1_1, W, A
+	cpfseq NC_Board_2_1, A
+	goto nc_check_col_2 ;if doesn't match, check the next column	
+	movlw 0x00 ;if does match, check it's not 0s
+	cpfseq NC_Board_1_1, A
+	goto nc_check_win_col_1 ;if it does match and isn't zeros, go check the third
+	;if it is zeros, go check the next column
+	
+    nc_check_col_2:
+	movf NC_Board_1_2, W, A
+	cpfseq NC_Board_2_2, A	
+	goto nc_check_col_3 ;doesn't match- next column
+	movlw 0x00 ;does match, check it's not 0s
+	cpfseq NC_Board_1_2, A 
+	goto nc_check_win_col_2 ;not zero- check third element
+	;zeros- check next column
+	
+    nc_check_col_3:
+	movf NC_Board_1_3, W, A
+	cpfseq NC_Board_2_3, A
+	return ;if it doesn't match, all columns have been checked - exit subroutine
+	movlw 0x00 ;if does match, check it's not 0s
+	cpfseq NC_Board_1_3, A
+	goto nc_check_win_col_3 ;check third element
+	return ;if zeros- exit sub
+	
+    ;checking the third elements
+    nc_check_win_col_1:	
+	movf NC_Board_1_1, W, A
+	cpfseq NC_Board_3_1, A ;check if third element in column equal to other two
+	goto nc_check_col_2 ;if not- check the next column
+	;if is equal, game has been won- set game won flag in status bit equal to 1
+	movlw NC_Game_Status | 0x01
+	movwf NC_Game_Status
+	return 
+    
+    nc_check_win_col_2:	
+	movf NC_Board_1_2, W, A
+	cpfseq NC_Board_3_2, A
+	goto nc_check_col_3
+	;game has been won- set game won flag in status bit equal to 1
+	movlw NC_Game_Status | 0x01
+	movwf NC_Game_Status
+	return 
+    
+    nc_check_win_col_3:	
+	movf NC_Board_1_3, W, A
+	cpfseq NC_Board_3_3, A
+	return ;no next column to check- exit subroutine
+	;game has been won- set game won flag in status bit equal to 1
+	movlw NC_Game_Status | 0x01
+	movwf NC_Game_Status
+	return 
+	
+
+NC_Check_Win_Diagonals: 
+	;check if the first element in the diag matches the central element
+	movf NC_Board_1_1, W, A
+	cpfseq NC_Board_2_2, A
+	goto nc_check_diag_2 ;if doesn't match, check the other diagonal
+	movlw 0x00 ;if does match, check it's not 0s
+	cpfseq NC_Board_1_1, A
+	goto nc_check_win_diag_1 ;if it does match and isn't zeros, go check the third
+	;if it is zeros, go check the other diagonal
+		
+    nc_check_diag_2:
+	movf NC_Board_1_3, W, A
+	cpfseq NC_Board_2_2, A
+	return ;if it doesn't match, both diagonals have been checked - exit subroutine
+	movlw 0x00 ;if does match, check it's not 0s
+	cpfseq NC_Board_1_3, A
+	goto nc_check_win_diag_2 ;check third element
+	return ;if zeros- exit sub
+	
+    ;checking the third elements
+    nc_check_win_diag_1:	
+	movf NC_Board_1_1, W, A
+	cpfseq NC_Board_3_3, A ;check if third element in diagonal equal to other two
+	goto nc_check_diag_2 ;if not- check the next diagonal
+	;if is equal, game has been won- set game won flag in status bit equal to 1
+	movlw NC_Game_Status | 0x01
+	movwf NC_Game_Status
+	return 
+    
+    nc_check_win_diag_2:	
+	movf NC_Board_1_3, W, A
+	cpfseq NC_Board_3_1, A
+	return ;no next column to check- exit subroutine
+	;game has been won- set game won flag in status bit equal to 1
+	movlw NC_Game_Status | 0x01
+	movwf NC_Game_Status
+	return 
+	
 NC_Show_Winner:
 	movlw 0x04
 	movwf NC_Loop_Counter_tmp, A    
