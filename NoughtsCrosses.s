@@ -36,10 +36,12 @@ NC_Run_Game:
 	call NC_Take_Turn	
 	call GLCD_Draw_NC ;refreshes the values on the board
 	call NC_Check_Win
-	movlw NC_Game_Status & 0x01
+	;movlw NC_Game_Status & 0x01
+	movf	NC_Game_Status,W, A	
 	tstfsz WREG, A  ;test the last bit of the status register- if it's zero, keep playing
-	goto nc_game_loop ;game is not won- move to next turn
 	goto nc_end_game ;game is won- end round
+	goto nc_game_loop ;game is not won- move to next turn
+
     nc_end_game: 
 	call NC_Show_Winner
 	return 
@@ -58,11 +60,11 @@ NC_Switch_Player:
 	;if currently O, switch to X
 	movlw   0x4F ;code for O 
 	cpfseq NC_Current_Player, A 
-	bra nc_switch_X
+	bra nc_switch_O
 	;if currently X, switch to O
 	movlw   0x58 ;code for X
 	cpfseq NC_Current_Player, A 
-	bra nc_switch_O
+	bra nc_switch_X
     nc_switch_X:
 	movlw 0x58
 	movwf NC_Current_Player, A
@@ -360,8 +362,9 @@ NC_Show_Winner:
 	call NC_delay_x1ms ;delay for 0.25s
 
 	decfsz NC_Loop_Counter_tmp, A
-	return 
 	goto nc_flashing_loop
+	return 
+
     
 NC_Clear_Board: 
 	movlw 0x00
@@ -385,8 +388,9 @@ nc_delay_loop_1ms:
     movlw 0xFA ;250 
     call NC_delay_x4us   ;250 * 4us = 1ms
     decfsz NC_Loop_Counter_delay, A
-    return 
     goto nc_delay_loop_1ms
+    return 
+
     
 NC_delay_x4us:		    ; delay given in chunks of 4 microsecond in W (taken from LCD code)
 	movwf	NC_cnt_l, A	; now need to multiply by 16
