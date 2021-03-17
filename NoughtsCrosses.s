@@ -75,7 +75,7 @@ NC_Switch_Player:
 NC_Take_Turn:
     nc_kpd_read_loop:
 	movlw 0x00
-	call KeypadRead
+	call Keypad_Read
 	tstfsz WREG, A  
 	bra nc_input_detected
 	bra nc_kpd_read_loop
@@ -173,11 +173,11 @@ NC_Check_Win:
 	call NC_Check_Win_Rows
 	;check if game won yet
 	movlw NC_Game_Status | 0x01
-	cpfseq NC_Game_Status
+	cpfseq NC_Game_Status, A
 	call NC_Check_Win_Columns ;if not, check the columns
 	;check again if game has been won	
 	movlw NC_Game_Status | 0x01
-	cpfseq NC_Game_Status
+	cpfseq NC_Game_Status, A
 	call NC_Check_Win_Diagonals ;if not, check the diagonals 
 	;all checked- return
 	return 
@@ -217,7 +217,7 @@ NC_Check_Win_Rows:
 	goto nc_check_row_2 ;if not- check the next row
 	;if is equal, game has been won- set game won flag in status bit equal to 1
 	movlw NC_Game_Status | 0x01
-	movwf NC_Game_Status
+	movwf NC_Game_Status, A
 	return 
     
     nc_check_win_row_2:	
@@ -226,7 +226,7 @@ NC_Check_Win_Rows:
 	goto nc_check_row_3
 	;game has been won- set game won flag in status bit equal to 1
 	movlw NC_Game_Status | 0x01
-	movwf NC_Game_Status
+	movwf NC_Game_Status, A
 	return 
     
     nc_check_win_row_3:	
@@ -235,7 +235,7 @@ NC_Check_Win_Rows:
 	return ;no next row to check- exit subroutine
 	;game has been won- set game won flag in status bit equal to 1
 	movlw NC_Game_Status | 0x01
-	movwf NC_Game_Status
+	movwf NC_Game_Status, A
 	return 
 
 NC_Check_Win_Columns: 
@@ -273,7 +273,7 @@ NC_Check_Win_Columns:
 	goto nc_check_col_2 ;if not- check the next column
 	;if is equal, game has been won- set game won flag in status bit equal to 1
 	movlw NC_Game_Status | 0x01
-	movwf NC_Game_Status
+	movwf NC_Game_Status, A
 	return 
     
     nc_check_win_col_2:	
@@ -282,7 +282,7 @@ NC_Check_Win_Columns:
 	goto nc_check_col_3
 	;game has been won- set game won flag in status bit equal to 1
 	movlw NC_Game_Status | 0x01
-	movwf NC_Game_Status
+	movwf NC_Game_Status, A
 	return 
     
     nc_check_win_col_3:	
@@ -291,7 +291,7 @@ NC_Check_Win_Columns:
 	return ;no next column to check- exit subroutine
 	;game has been won- set game won flag in status bit equal to 1
 	movlw NC_Game_Status | 0x01
-	movwf NC_Game_Status
+	movwf NC_Game_Status, A
 	return 
 	
 
@@ -321,7 +321,7 @@ NC_Check_Win_Diagonals:
 	goto nc_check_diag_2 ;if not- check the next diagonal
 	;if is equal, game has been won- set game won flag in status bit equal to 1
 	movlw NC_Game_Status | 0x01
-	movwf NC_Game_Status
+	movwf NC_Game_Status, A
 	return 
     
     nc_check_win_diag_2:	
@@ -330,7 +330,7 @@ NC_Check_Win_Diagonals:
 	return ;no next column to check- exit subroutine
 	;game has been won- set game won flag in status bit equal to 1
 	movlw NC_Game_Status | 0x01
-	movwf NC_Game_Status
+	movwf NC_Game_Status, A
 	return 
 	
 NC_Show_Winner:
@@ -359,7 +359,7 @@ NC_Show_Winner:
 	movlw 0xFA ;250 
 	call NC_delay_x1ms ;delay for 0.25s
 
-	decfsz NC_Loop_Counter_tmp
+	decfsz NC_Loop_Counter_tmp, A
 	return 
 	goto nc_flashing_loop
     
@@ -377,7 +377,6 @@ NC_Clear_Board:
 	call GLCD_Draw_NC ;send these values to the board
 	return 
     
-    
 ; delay fns 
     
 NC_delay_x1ms:
@@ -385,7 +384,7 @@ NC_delay_x1ms:
 nc_delay_loop_1ms: 
     movlw 0xFA ;250 
     call NC_delay_x4us   ;250 * 4us = 1ms
-    decfsz NC_Loop_Counter_delay
+    decfsz NC_Loop_Counter_delay, A
     return 
     goto nc_delay_loop_1ms
     
