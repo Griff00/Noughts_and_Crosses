@@ -18,7 +18,7 @@ Keypad_Setup:
 	bsf	REPU ;to pull all input values high - not doing that
 	clrf    LATE, A	; make sure these are blank before reading from them
 	movlw	0x00
-	movwf	TRISD, A ;set up port d for outputs
+	movwf	TRISH, A ;set up port f for outputs
 	return
 
 Keypad_Read:
@@ -27,7 +27,7 @@ Keypad_Read:
     movf Keypad_Row_Code, W,A
     call Keypad_Validate_Pattern    ;leaves the relevnt char code in W
     movwf Keypad_output_char, A
-    movff Keypad_output_char, PORTD, A	;Display output char code on PORTD LEDs
+    movff Keypad_output_char, PORTH, A	;Display output char code on PORTF LEDs
     movf Keypad_output_char, W, A   ;move output back to W
     return
     
