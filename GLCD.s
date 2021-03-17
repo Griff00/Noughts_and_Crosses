@@ -75,6 +75,9 @@ GLCD_Setup:
 	
 	call	GLCD_Clear  ;Clear GLCD Data Ram (now completely empty)
 	call	GLCD_Grid   ; Draw grid (3x3)
+	movlw	0x3f	;Instruction code for display = on
+	call	GLCD_Send_I	;Send instruction to GLCD
+	
 	return
 	
 GLCD_Update_address:	;Update address subroutine: called frequently to point to required column and page
