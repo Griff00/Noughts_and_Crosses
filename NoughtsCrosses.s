@@ -9,7 +9,7 @@ psect	udata_acs   ; named variables in access ram
 NC_Game_Status: ds 1 ;status byte- last bit is 1 if game has been won
 NC_Current_Player: ds 1 ;stores the character code (X or O) of the player playing
     
-NC_Loop_Counter_tmp: ds 1 ;a temporary loop counter for general use
+NC_tmp: ds 1 ;a temporary loop counter for general use
 
 NC_Keypad_Button_Pressed: ds 1 ;to store the button pressed in each turn
     
@@ -35,16 +35,24 @@ NC_Run_Game:
 	call NC_Switch_Player
 	call NC_Take_Turn	
 	call GLCD_Draw_NC ;refreshes the values on the board
-	call NC_Check_Win
-	;movlw NC_Game_Status & 0x01
-	movf	NC_Game_Status,W, A	
-	tstfsz WREG, A  ;test the last bit of the status register- if it's zero, keep playing
-	goto nc_end_game ;game is won- end round
-	goto nc_game_loop ;game is not won- move to next turn
-
+	call NC_Check_Win ;will raise last bit of status if the game is won
+	call NC_Check_Stalemate ;will raise 7th bit of status if the board is full
+	tstfsz NC_Game_Status, A  ;test the status register
+	goto nc_end_game ;a flag has been raised, end play
+	goto nc_game_loop ;no bits raised, keep playing
     nc_end_game: 
-	call NC_Show_Winner
+	movlw NC_Game_Status | 0x01  
+	cpfseq NC_Game_Status, A ;check if the game has been won
+	bra nc_stalemate ;last bit 0, there's a stalemate
+	bra nc_game_won ;last bit flagged, the game is won
+    nc_game_won:
+	call NC_Show_Winner	
 	return 
+    nc_stalemate:
+	movlw 0xFA ;250 
+	call NC_delay_x1ms ;delay for 0.25s
+	call NC_Clear_Board
+	return
 
 NC_Setup_Game: 
 	call Keypad_Setup ;Set up the keypad for use	
@@ -334,10 +342,36 @@ NC_Check_Win_Diagonals:
 	movlw NC_Game_Status | 0x01
 	movwf NC_Game_Status, A
 	return 
+
+NC_Check_Stalemate:     
+    ;check each space - if any are empty, exit
+    movlw 0x00 
+    cpfsgt NC_Board_1_1, A
+    return
+    cpfsgt NC_Board_1_2, A
+    return
+    cpfsgt NC_Board_1_3, A
+    return
+    cpfsgt NC_Board_2_1, A
+    return
+    cpfsgt NC_Board_2_2, A
+    return
+    cpfsgt NC_Board_2_3, A
+    return
+    cpfsgt NC_Board_3_1, A
+    return
+    cpfsgt NC_Board_3_2, A
+    return
+    cpfsgt NC_Board_3_3, A
+    return
+    ;if executing here, no spaces are empty- stalemate (or win) achieved.    
+    movlw NC_Game_Status | 0x02 ;raise flag that the board is filled
+    movwf NC_Game_Status, A
+    return
 	
 NC_Show_Winner:
 	movlw 0x04
-	movwf NC_Loop_Counter_tmp, A    
+	movwf NC_tmp, A    
     nc_flashing_loop:    
 	;display every square as the winners
 	movff NC_Current_Player, NC_Board_1_1, A
@@ -361,7 +395,7 @@ NC_Show_Winner:
 	movlw 0xFA ;250 
 	call NC_delay_x1ms ;delay for 0.25s
 
-	decfsz NC_Loop_Counter_tmp, A
+	decfsz NC_tmp, A
 	goto nc_flashing_loop
 	return 
 
