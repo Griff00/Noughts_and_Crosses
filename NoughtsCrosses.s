@@ -1,6 +1,7 @@
 #include <xc.inc>
 extrn	Keypad_Setup, Keypad_Read
 extrn	GLCD_Setup, GLCD_Draw_NC
+extrn	DAC_tune, DAC_Load_Table
     
 global  NC_Run_Game
 global NC_Board_1_1, NC_Board_1_2,NC_Board_1_3,NC_Board_2_1,NC_Board_2_2,NC_Board_2_3,NC_Board_3_1,NC_Board_3_2,NC_Board_3_3
@@ -31,6 +32,7 @@ psect	nc_code, class=CODE
     
 NC_Run_Game: 
 	call NC_Setup_Game
+	call DAC_Load_Table ;loads sine wave lookup table into RAM
     nc_game_loop:
 	call NC_Switch_Player
 	call NC_Take_Turn	
@@ -47,6 +49,7 @@ NC_Run_Game:
 	bra nc_game_won ;last bit flagged, the game is won
     nc_game_won:
 	call NC_Show_Winner	
+	call DAC_tune ;Play tune when game is won
 	return 
     nc_stalemate:
 	movlw 0xFA ;250 
