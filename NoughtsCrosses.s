@@ -32,7 +32,6 @@ psect	nc_code, class=CODE
     
 NC_Run_Game: 
 	call NC_Setup_Game
-	call DAC_Load_Table ;loads sine wave lookup table into RAM
     nc_game_loop:
 	call NC_Switch_Player
 	call NC_Take_Turn	
@@ -48,8 +47,8 @@ NC_Run_Game:
 	bra nc_stalemate ;last bit 0, there's a stalemate
 	bra nc_game_won ;last bit flagged, the game is won
     nc_game_won:
-	call NC_Show_Winner	
-	call DAC_tune ;Play tune when game is won
+	call NC_Show_Winner
+	call DAC_tune
 	return 
     nc_stalemate:
 	movlw 0xFA ;250 
@@ -61,6 +60,7 @@ NC_Setup_Game:
 	call Keypad_Setup ;Set up the keypad for use	
 	call NC_Clear_Board
 	call GLCD_Setup ;draws empty board	
+	call DAC_Load_Table ;loads sine wave lookup table into RAM
 	movlw 0x00
 	movwf NC_Game_Status, A ;new game, cannot be won yet
 	movlw 0x58
@@ -372,7 +372,7 @@ NC_Check_Stalemate:
     movwf NC_Game_Status, A
     return
 	
-NC_Show_Winner:
+NC_Show_Winner:    	
 	movlw 0x04
 	movwf NC_tmp, A    
     nc_flashing_loop:    
