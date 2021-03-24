@@ -69,32 +69,146 @@ Exit_Int:
 	retfie	f		; fast return from interrupt
 
 
-DAC_tune:   ; This is the highest level subroutine. Calling this will ouput a tune on the speaker. (Current tune: C,D,E,D,C,E,C)
+DAC_tune:   ; This is the highest level subroutine. Calling this will ouput a tune on the speaker. (Current tune: Mary Had A Little Lamb)
 	    ; This can be greatly modified to get different tunes.
     	call	DAC_off	;Start with DAC off 
-	movlw	0x02	
-	movwf	DAC_freq_calibration, A	; Set frequency = ~260Hz (approx middle C note)
+	movlw	0x48
+	movwf	DAC_freq_calibration, A ; Set frequency = ~330Hz (approx E note)
 	call	DAC_Setup; Setup (turn on) DAC 
-	call	DAC_Long_delay	; Long delay (this is the duration of the C note - can be altered by changing Long_delay time)
+	call	DAC_Long_delay
+	call	DAC_Long_delay
 	movlw	0x28
 	movwf	DAC_freq_calibration, A	; Set frequency = ~298Hz (approx D note)
 	call	DAC_Long_delay
-	movlw	0x48
-	movwf	DAC_freq_calibration, A ; Set frequency = ~330Hz (approx E note)
+	call	DAC_Long_delay
+	movlw	0x02
+	movwf	DAC_freq_calibration, A	; Set frequency = ~260Hz (approx middle C note)
+	call	DAC_Long_delay
 	call	DAC_Long_delay
 	movlw	0x28
-	movwf	DAC_freq_calibration, A
+	movwf	DAC_freq_calibration, A	; D
 	call	DAC_Long_delay
-	movlw	0x02
-	movwf	DAC_freq_calibration, A
 	call	DAC_Long_delay
 	movlw	0x48
-	movwf	DAC_freq_calibration, A
+	movwf	DAC_freq_calibration, A ; E
+	call	DAC_Long_delay
+	call	DAC_off
+	call	DAC_Long_delay
+	call	DAC_Setup
+	movlw	0x48
+	movwf	DAC_freq_calibration, A ; E
+	call	DAC_Long_delay
+	call	DAC_off
+	call	DAC_Long_delay
+	call	DAC_Setup
+	movlw	0x48
+	movwf	DAC_freq_calibration, A ; E- held for longer
+	call	DAC_Long_delay
+	call	DAC_Long_delay
+	call	DAC_off
+	call	DAC_Long_delay
+	call	DAC_Setup
+	movlw	0x28
+	movwf	DAC_freq_calibration, A	; D
+	call	DAC_Long_delay
+	call	DAC_off
+	call	DAC_Long_delay
+	call	DAC_Setup
+	movlw	0x28
+	movwf	DAC_freq_calibration, A	; D
+	call	DAC_Long_delay
+	call	DAC_off
+	call	DAC_Long_delay
+	call	DAC_Setup
+	movlw	0x28
+	movwf	DAC_freq_calibration, A	; D - held for longer
+	call	DAC_Long_delay
+	call	DAC_Long_delay
+	call	DAC_off
+	call	DAC_Long_delay
+	call	DAC_Setup
+	movlw	0x48
+	movwf	DAC_freq_calibration, A ; E
+	call	DAC_Long_delay
+	call	DAC_off
+	call	DAC_Long_delay
+	call	DAC_Setup
+	movlw	0x48
+	movwf	DAC_freq_calibration, A ; E
+	call	DAC_Long_delay
+	call	DAC_off
+	call	DAC_Long_delay
+	call	DAC_Setup
+	movlw	0x48
+	movwf	DAC_freq_calibration, A ; E - held for longer
+	call	DAC_Long_delay
+	call	DAC_Long_delay
+	call	DAC_off
+	call	DAC_Long_delay
+	call	DAC_Long_delay
+	call	DAC_Setup
+	movlw	0x48
+	movwf	DAC_freq_calibration, A ; E
+	call	DAC_Long_delay
+	call	DAC_Long_delay
+	movlw	0x28
+	movwf	DAC_freq_calibration, A	; D
+	call	DAC_Long_delay
 	call	DAC_Long_delay
 	movlw	0x02
-	movwf	DAC_freq_calibration, A
+	movwf	DAC_freq_calibration, A	; C
+	call	DAC_Long_delay
+	call	DAC_Long_delay
+	movlw	0x28
+	movwf	DAC_freq_calibration, A	; D
+	call	DAC_Long_delay
+	call	DAC_Long_delay
+	movlw	0x48
+	movwf	DAC_freq_calibration, A ; E
+	call	DAC_Long_delay
+	call	DAC_off
+	call	DAC_Long_delay
+	call	DAC_Setup
+	movlw	0x48
+	movwf	DAC_freq_calibration, A ; E
+	call	DAC_Long_delay
+	call	DAC_off
+	call	DAC_Long_delay
+	call	DAC_Setup
+	movlw	0x48
+	movwf	DAC_freq_calibration, A ; E
+	call	DAC_Long_delay
+	call	DAC_off
+	call	DAC_Long_delay
+	call	DAC_Setup
+	movlw	0x02
+	movwf	DAC_freq_calibration, A	; C
+	call	DAC_Long_delay
+	call	DAC_Long_delay
+	movlw	0x28
+	movwf	DAC_freq_calibration, A	; D
+	call	DAC_Long_delay
+	call	DAC_off
+	call	DAC_Long_delay
+	call	DAC_Setup
+	movlw	0x28
+	movwf	DAC_freq_calibration, A	; D
+	call	DAC_Long_delay
+	call	DAC_Long_delay
+	movlw	0x48
+	movwf	DAC_freq_calibration, A ; E
+	call	DAC_Long_delay
+	call	DAC_Long_delay
+	movlw	0x28
+	movwf	DAC_freq_calibration, A	; D
+	call	DAC_Long_delay
+	call	DAC_Long_delay
+	movlw	0x02
+	movwf	DAC_freq_calibration, A	; C
+	call	DAC_Long_delay
 	call	DAC_Long_delay
 
+	
 	call	DAC_off	; Tune has ended - need to turn off DAC to stop output
 	return
 	
@@ -141,11 +255,10 @@ loop: 	tblrd*+			; one byte from PM to TABLAT, increment TBLPRT
 	return
 
 DAC_Long_delay:
-	movlw	0x01	
+	movlw	0x01
 	movwf	DAC_long_delay, A
 long_delay_loop:
-	movlw	200; wait 2ms
-	;movlw	150
+	movlw	100 ; wait 1ms
 	call	DAC_delay_ms
 	
 	decfsz  DAC_long_delay, A
